@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dylan_printing - Cetak Undangan Pernikahan</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#4F46E5', /* Indigo Primary */
+              600: '#4338ca',
+              700: '#3730a3',
+              accent: '#06B6D4' /* Cyan Secondary */
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --secondary: #06B6D4;
+      --bg-primary: #F8FAFF;
+      --radius-lg: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body {
+      background-color: var(--bg-primary);
+      scroll-behavior: smooth;
+    }
+    .custom-shadow {
+      box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
+    }
+    .custom-shadow-lg {
+      box-shadow: 0 10px 30px rgba(79, 70, 229, 0.15);
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased text-slate-800">
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center gap-4">
+  <div class="relative w-16 h-16">
+    <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+    <div class="absolute inset-0 rounded-full border-4 border-brand-500 border-t-transparent animate-spin"></div>
+  </div>
+  <p class="text-slate-500 font-semibold text-sm">Menyiapkan Aplikasi dylan_printing...</p>
+</div>
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div id="toastContainer" class="fixed top-20 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+<!-- MAIN LAYOUT -->
+<div class="min-h-screen flex flex-col">
+  
+  <!-- NAVIGATION -->
+  <nav class="sticky top-0 z-50 glass border-b border-slate-100 custom-shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer" onclick="scrollToSection('home')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-500 to-brand-accent flex items-center justify-center shadow-md">
+            <i class="fa-solid fa-envelope-open-text text-white text-lg"></i>
+          </div>
+          <div>
+            <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-brand-500 to-brand-accent bg-clip-text text-transparent">dylan_printing</span>
+            <span class="block text-[9px] text-slate-400 -mt-1 font-semibold uppercase tracking-widest">Premium Invitation</span>
+          </div>
+        </div>
+
+        <!-- Navigation Links (Desktop) -->
+        <div class="hidden md:flex items-center gap-1">
+          <button onclick="scrollToSection('home')" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-brand-500 transition-colors">Beranda</button>
+          <button onclick="scrollToSection('products')" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-brand-500 transition-colors">Produk Undangan</button>
+          <button onclick="scrollToSection('contact')" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-brand-500 transition-colors">Hubungi Kami</button>
+          <button onclick="openAdminModal()" class="ml-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-lock text-xs"></i> Panel Admin
+          </button>
+        </div>
+
+        <!-- Mobile Menu Trigger -->
+        <div class="md:hidden flex items-center">
+          <button onclick="toggleMobileMenu()" class="text-slate-600 p-2 focus:outline-none">
+            <i id="menuIcon" class="fa-solid fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown Navigation -->
+    <div id="mobileMenu" class="hidden md:hidden border-t border-slate-100 bg-white/95 px-4 pt-2 pb-4 space-y-1 shadow-lg transition-all">
+      <button onclick="scrollToSection('home'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">Beranda</button>
+      <button onclick="scrollToSection('products'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">Produk Undangan</button>
+      <button onclick="scrollToSection('contact'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">Hubungi Kami</button>
+      <button onclick="openAdminModal(); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-slate-900 flex items-center gap-2">
+        <i class="fa-solid fa-lock text-xs"></i> Panel Admin
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section id="home" class="relative overflow-hidden bg-white pt-12 pb-20 md:py-32">
+    <div class="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-indigo-50 to-transparent rounded-l-[100px] hidden lg:block -z-10"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
+        <!-- Hero Text -->
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-brand-500 text-xs font-bold uppercase tracking-wider">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Undangan Modern & Custom
+          </div>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-950 leading-tight">
+            Cetak Undangan Mewah, <br class="hidden sm:inline">
+            <span class="bg-gradient-to-r from-brand-500 to-brand-accent bg-clip-text text-transparent">Desain Kustom Suka-Suka!</span>
+          </h1>
+          <p class="text-lg text-slate-500 max-w-2xl mx-auto lg:mx-0 font-medium">
+            Wujudkan momen kebahagiaan pernikahan Anda dengan desain undangan eksklusif dari <span class="text-brand-500 font-bold">dylan_printing</span>. Proses cetak cepat, kualitas kertas premium, dan konsultasi mudah langsung terhubung ke WhatsApp.
+          </p>
+          <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+            <button onclick="scrollToSection('products')" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-brand-500 to-brand-accent hover:from-indigo-600 hover:to-cyan-600 text-white rounded-xl font-bold shadow-lg shadow-brand-500/30 hover:shadow-brand-500/45 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-3">
+              <i class="fa-solid fa-basket-shopping"></i> Lihat Katalog Undangan
+            </button>
+            <a href="https://wa.me/6285856919425" target="_blank" class="w-full sm:w-auto px-8 py-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 rounded-xl font-bold transition-all flex items-center justify-center gap-3">
+              <i class="fa-brands fa-whatsapp text-lg"></i> Tanya via WhatsApp
+            </a>
+          </div>
+
+          <!-- Trust Badges -->
+          <div class="pt-6 grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0">
+            <div class="text-center lg:text-left">
+              <p class="text-2xl font-extrabold text-slate-900">100%</p>
+              <p class="text-xs text-slate-400 font-semibold">Desain Eksklusif</p>
+            </div>
+            <div class="text-center lg:text-left border-x border-slate-100">
+              <p class="text-2xl font-extrabold text-slate-900">3-5 Hari</p>
+              <p class="text-xs text-slate-400 font-semibold">Proses Produksi</p>
+            </div>
+            <div class="text-center lg:text-left">
+              <p class="text-2xl font-extrabold text-slate-900">Premium</p>
+              <p class="text-xs text-slate-400 font-semibold">Bahan Kertas Pilihan</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Graphic -->
+        <div class="lg:col-span-5 mt-12 lg:mt-0 relative flex justify-center">
+          <div class="relative w-full max-w-sm sm:max-w-md">
+            <div class="absolute -inset-4 bg-gradient-to-tr from-brand-500 to-cyan-400 rounded-2xl opacity-10 blur-xl"></div>
+            
+            <div class="relative bg-white border border-slate-100 p-3 rounded-3xl shadow-xl transform rotate-1">
+              <img src="https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?q=80&w=600&auto=format&fit=crop" 
+                   alt="Premium Invitation" 
+                   class="w-full h-80 object-cover rounded-2xl" 
+                   onerror="this.src='https://placehold.co/600x400/ece9fe/4338ca?text=Dylan+Printing+Undangan'">
+              <div class="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg border border-white/50">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="font-bold text-slate-900">Elegance Floral Kraft</h4>
+                    <p class="text-xs text-slate-400 font-semibold">Hubungi kami untuk penawaran terbaik</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-indigo-100 text-brand-500 text-xs font-extrabold">Terlaris</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTS CATALOG -->
+  <section id="products" class="py-20 bg-slate-50 border-y border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+        <span class="text-xs font-bold text-brand-500 uppercase tracking-widest bg-indigo-50 px-3.5 py-1.5 rounded-full border border-indigo-100">Katalog Eksklusif</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-950">Pilih Desain Undangan Impian Anda</h2>
+        <p class="text-slate-500 font-medium">Klik pada produk untuk melihat rincian detail, menyesuaikan jumlah pesanan, dan meminta penawaran harga langsung ke WhatsApp.</p>
+      </div>
+
+      <!-- Categories Filter -->
+      <div class="flex items-center justify-center gap-2 mb-12 overflow-x-auto pb-4 scrollbar-hide">
+        <button onclick="filterProducts('All')" id="filter-btn-All" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-brand-500 text-white shadow-md shadow-brand-500/25 transition-all">Semua</button>
+        <button onclick="filterProducts('Rustic')" id="filter-btn-Rustic" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-white hover:bg-indigo-50/50 text-slate-500 hover:text-brand-500 transition-all">Rustic & Kraft</button>
+        <button onclick="filterProducts('Elegant')" id="filter-btn-Elegant" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-white hover:bg-indigo-50/50 text-slate-500 hover:text-brand-500 transition-all">Elegant & Gold</button>
+        <button onclick="filterProducts('Modern')" id="filter-btn-Modern" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-white hover:bg-indigo-50/50 text-slate-500 hover:text-brand-500 transition-all">Modern Minimalis</button>
+        <button onclick="filterProducts('Digital')" id="filter-btn-Digital" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-white hover:bg-indigo-50/50 text-slate-500 hover:text-brand-500 transition-all">Undangan Digital</button>
+      </div>
+
+      <!-- Products Grid -->
+      <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <!-- Products generated dynamically -->
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT SECTION -->
+  <section id="contact" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <!-- Left Side: Contact details -->
+        <div class="lg:col-span-5 space-y-8 text-center lg:text-left">
+          <div class="space-y-4">
+            <span class="text-xs font-bold text-brand-500 uppercase tracking-widest bg-indigo-50 px-3.5 py-1.5 rounded-full border border-indigo-100">Hubungi Kami</span>
+            <h2 class="text-3xl font-extrabold text-slate-950">Ada Pertanyaan? Konsultasi Gratis!</h2>
+            <p class="text-slate-500 font-medium">Bebas menanyakan pilihan bahan kertas, kelengkapan bonus (plastik, kartu ucapan), atau desain custom yang Anda miliki.</p>
+          </div>
+
+          <!-- Contact Cards -->
+          <div class="space-y-4 max-w-md mx-auto lg:mx-0">
+            <a href="https://wa.me/6285856919425" target="_blank" class="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50/20 transition-all text-left">
+              <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl flex-shrink-0">
+                <i class="fa-brands fa-whatsapp"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-900">WhatsApp Official</h4>
+                <p class="text-sm text-slate-500 font-medium">0858-5691-9425</p>
+                <p class="text-xs text-emerald-600 font-bold mt-1">Respons Cepat &bull; Online</p>
+              </div>
+            </a>
+
+            <div class="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 text-left">
+              <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl flex-shrink-0">
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-900">Jam Operasional Toko</h4>
+                <p class="text-sm text-slate-500 font-medium">Setiap Hari: 08.00 WIB - 21.00 WIB</p>
+                <p class="text-xs text-slate-400 font-medium">Pemesanan online tetap dilayani 24 jam</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Workflow Visualizer -->
+        <div class="lg:col-span-7">
+          <div class="bg-gradient-to-tr from-brand-500 to-indigo-700 rounded-3xl p-8 sm:p-12 text-white custom-shadow-lg relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 rounded-full bg-white/10 blur-xl"></div>
+            
+            <div class="relative space-y-6">
+              <h3 class="text-2xl sm:text-3xl font-extrabold leading-tight">Alur Mudah Pemesanan Undangan di dylan_printing</h3>
+              
+              <div class="space-y-6">
+                <!-- Step 1 -->
+                <div class="flex gap-4">
+                  <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+                  <div>
+                    <h5 class="font-bold text-lg">Pilih Varian di Katalog</h5>
+                    <p class="text-indigo-100 text-sm">Lihat katalog produk di atas, lalu klik tombol "Tanya Penawaran" pada variasi undangan pilihan Anda.</p>
+                  </div>
+                </div>
+                <!-- Step 2 -->
+                <div class="flex gap-4">
+                  <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+                  <div>
+                    <h5 class="font-bold text-lg">Isi Jumlah & Kirim WhatsApp</h5>
+                    <p class="text-indigo-100 text-sm">Formulir pesanan kami akan secara instan merangkum rincian lalu membukanya langsung ke WhatsApp kami.</p>
+                  </div>
+                </div>
+                <!-- Step 3 -->
+                <div class="flex gap-4">
+                  <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+                  <div>
+                    <h5 class="font-bold text-lg">Konfirmasi Desain & Cetak</h5>
+                    <p class="text-indigo-100 text-sm">Kami mengirimkan konsep layout teks dan foto untuk diperiksa. Setelah disetujui, langsung masuk antrean cetak!</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-4">
+                <a href="https://wa.me/6285856919425?text=Halo%20dylan_printing,%20saya%20ingin%20bertanya%20mengenai%20cetak%20undangan" target="_blank" class="inline-flex items-center gap-3 px-6 py-3.5 bg-white text-brand-500 rounded-xl font-extrabold hover:bg-slate-50 transition-all shadow-lg shadow-black/10">
+                  <i class="fa-brands fa-whatsapp text-lg text-emerald-500"></i> Hubungi CS Sekarang
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto bg-slate-900 text-slate-400 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center border-b border-slate-800 pb-8">
+        <!-- Footer brand -->
+        <div class="flex items-center gap-3 justify-center md:justify-start">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-brand-500 to-brand-accent flex items-center justify-center shadow-md">
+            <i class="fa-solid fa-envelope-open-text text-white text-sm"></i>
+          </div>
+          <div>
+            <span class="font-bold text-lg text-white tracking-tight">dylan_printing</span>
+            <span class="block text-[8px] text-slate-500 -mt-1 font-bold uppercase tracking-widest">Premium Invitations</span>
+          </div>
+        </div>
+
+        <p class="text-xs text-center text-slate-500">Mencetak kebahagiaan momen spesial Anda lewat keindahan lembaran kertas premium.</p>
+
+        <!-- Social/Contact Info -->
+        <div class="flex items-center justify-center md:justify-end gap-4">
+          <a href="https://wa.me/6285856919425" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors text-slate-400">
+            <i class="fa-brands fa-whatsapp"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between pt-8 gap-4">
+        <p class="text-xs text-slate-600">&copy; 2026 dylan_printing. Seluruh hak cipta dilindungi.</p>
+        <p class="text-xs text-slate-600">Database Engine: Google Sheets & Apps Script</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ORDER MODAL & SPECIFICATION SELECTOR -->
+<div id="orderModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform scale-95 transition-all">
+    <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-500 flex items-center justify-center">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+        <h3 class="font-bold text-slate-900 text-base">Rincian & Permintaan Cetak</h3>
+      </div>
+      <button onclick="closeOrderModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-all">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form id="orderForm" onsubmit="submitToWhatsApp(event)" class="p-6 space-y-4">
+      <input type="hidden" id="orderProductId">
+      
+      <!-- Selected Product Info -->
+      <div class="flex items-center gap-4 p-3 bg-slate-50 border border-slate-100 rounded-xl">
+        <img id="orderProductImg" src="" alt="" class="w-14 h-14 object-cover rounded-lg border border-slate-200">
+        <div>
+          <h4 id="orderProductName" class="font-bold text-slate-900 text-sm">Nama Undangan</h4>
+          <p id="orderProductCategory" class="text-xs text-slate-400 font-bold uppercase tracking-wide">Kategori</p>
+          <p class="text-xs text-brand-500 font-bold mt-0.5">Custom & Premium</p>
+        </div>
+      </div>
+
+      <!-- Customer Details -->
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nama Pemesan / Kedua Mempelai</label>
+          <input type="text" id="custName" required placeholder="Contoh: Rian & Amel" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Jumlah Undangan (Pcs)</label>
+          <input type="number" id="custQty" required min="50" value="100" oninput="calculateTotal()" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition-all">
+          <span class="text-[10px] text-slate-400 mt-1 block font-medium">* Minimal pemesanan cetak adalah 50 pcs</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Catatan Tambahan (Opsional)</label>
+          <textarea id="custNotes" placeholder="Minta kertas warna gading, tambah peta lokasi, dsb." rows="2" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition-all"></textarea>
+        </div>
+      </div>
+
+      <!-- Specs / Weight Breakdown -->
+      <div class="pt-4 border-t border-slate-100 space-y-2">
+        <div class="flex items-center justify-between text-xs text-slate-400 font-semibold">
+          <span>Estimasi Berat Paket:</span>
+          <span><span id="calcWeight">0.0</span> kg</span>
+        </div>
+        <p class="text-[11px] text-slate-400 font-medium">* CS kami akan segera menghubungi Anda dengan rincian harga terbaik berdasarkan model & jumlah.</p>
+      </div>
+
+      <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2">
+        <i class="fa-brands fa-whatsapp text-lg"></i> Minta Penawaran ke WhatsApp
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN PASSCODE MODAL -->
+<div id="adminAuthModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-100 p-6 space-y-4">
+    <div class="text-center space-y-2">
+      <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-600 mx-auto flex items-center justify-center text-xl">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h3 class="font-bold text-slate-900 text-lg">Otentikasi Panel Admin</h3>
+      <p class="text-xs text-slate-400 font-medium">Khusus untuk pemilik dylan_printing</p>
+    </div>
+
+    <form onsubmit="verifyAdminPasscode(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kata Sandi</label>
+        <input type="password" id="adminPassword" required placeholder="Masukkan kata sandi..." class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition-all text-center tracking-wider">
+      </div>
+      
+      <div class="flex gap-2">
+        <button type="button" onclick="closeAdminModal()" class="w-1/2 py-2.5 border border-slate-100 hover:bg-slate-50 rounded-lg font-bold text-xs text-slate-500 transition-all">
+          Batal
+        </button>
+        <button type="submit" class="w-1/2 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold text-xs transition-all shadow-sm">
+          Masuk
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CUSTOM DELETE CONFIRMATION MODAL -->
+<div id="deleteConfirmModal" class="hidden fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-100 p-6 space-y-4 transform scale-95 transition-all">
+    <div class="text-center space-y-2">
+      <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 mx-auto flex items-center justify-center text-xl animate-pulse">
+        <i class="fa-solid fa-trash-can"></i>
+      </div>
+      <h3 class="font-bold text-slate-900 text-base">Hapus Varian Undangan?</h3>
+      <p class="text-xs text-slate-500 font-medium leading-relaxed">Apakah Anda yakin ingin menghapus produk <span id="deleteProductName" class="font-bold text-slate-900"></span>? Tindakan ini tidak dapat dibatalkan.</p>
+    </div>
+    <div class="flex gap-2">
+      <button type="button" onclick="closeDeleteModal()" class="w-1/2 py-2.5 border border-slate-100 hover:bg-slate-50 rounded-lg font-bold text-xs text-slate-500 transition-all">
+        Batal
+      </button>
+      <button type="button" id="btnConfirmDelete" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-xs transition-all shadow-sm">
+        Ya, Hapus
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MANAGEMENT WRAPPER -->
+<div id="adminPanel" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-50 flex">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-slate-950 text-slate-400 flex-shrink-0 flex flex-col hidden lg:flex">
+    <div class="p-6 border-b border-slate-900 flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-500 to-brand-accent flex items-center justify-center">
+        <i class="fa-solid fa-envelope-open-text text-white text-xs"></i>
+      </div>
+      <span class="font-bold text-base text-white">dylan_printing</span>
+    </div>
+    
+    <nav class="flex-1 p-4 space-y-1">
+      <button onclick="switchAdminTab('dashboard')" id="tabBtn-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all text-white bg-slate-900">
+        <i class="fa-solid fa-chart-line text-slate-400"></i> Dashboard
+      </button>
+      <button onclick="switchAdminTab('products')" id="tabBtn-products" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-slate-900/50">
+        <i class="fa-solid fa-tags text-slate-400"></i> Kelola Produk
+      </button>
+      <button onclick="switchAdminTab('deploy')" id="tabBtn-deploy" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-slate-900/50">
+        <i class="fa-solid fa-cloud-arrow-up text-slate-400"></i> Apps Script Hub
+      </button>
+    </nav>
+
+    <div class="p-4 border-t border-slate-900 flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-500">v1.1.0</span>
+      <button onclick="logoutAdmin()" class="px-3 py-1.5 bg-red-950 text-red-400 hover:bg-red-900 rounded-md font-bold text-xs transition-colors">
+        Keluar
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile Admin Top Bar / Main Body -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="logoutAdmin()" class="lg:hidden p-2 text-slate-600 hover:bg-slate-50 rounded-lg">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <h2 id="adminTitle" class="font-extrabold text-slate-900 text-lg">Dashboard Admin</h2>
+      </div>
+      <!-- Database Connection Status Badge -->
+      <div class="flex items-center gap-2">
+        <span id="db-status-badge" class="text-[11px] bg-indigo-50 text-brand-500 border border-indigo-100 font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+          Simulasi (Local)
+        </span>
+      </div>
+    </header>
+
+    <!-- ADMIN TAB: DASHBOARD -->
+    <main id="adminTab-dashboard" class="flex-1 p-6 space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="absolute right-4 top-4 text-brand-500/15 text-5xl font-extrabold">
+            <i class="fa-solid fa-box-open"></i>
+          </div>
+          <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Varian Undangan</p>
+          <p id="stat-total-products" class="text-3xl font-black text-slate-950 mt-1">0</p>
+          <p class="text-[11px] text-emerald-600 mt-2 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Siap Tayang</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="absolute right-4 top-4 text-emerald-500/15 text-5xl font-extrabold">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Hotline WhatsApp</p>
+          <p class="text-lg font-extrabold text-slate-950 mt-1">6285856919425</p>
+          <p class="text-[11px] text-slate-500 mt-2 font-semibold">Tujuan otomatis pesanan pelanggan</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="absolute right-4 top-4 text-indigo-500/15 text-5xl font-extrabold">
+            <i class="fa-solid fa-database"></i>
+          </div>
+          <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Sumber Database</p>
+          <p id="stat-db-type" class="text-lg font-extrabold text-slate-950 mt-1">Local Storage</p>
+          <button onclick="triggerDatabaseSetup()" class="text-[10px] text-indigo-500 mt-2 font-bold underline cursor-pointer hover:text-indigo-600 block">
+            Sambungkan Google Sheets
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Tips -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+        <h3 class="font-bold text-slate-900 text-sm">Selamat Datang di Portal Admin dylan_printing!</h3>
+        <p class="text-slate-500 text-xs font-medium leading-relaxed">
+          Ini adalah panel administrasi eksklusif Anda. Di sini Anda dapat menambahkan varian undangan baru, mengubah deskripsi, dan memperbarui foto produk tanpa menampilkan harga kepada pembeli di halaman depan.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+          <button onclick="switchAdminTab('products')" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow">
+            <i class="fa-solid fa-plus"></i> Tambah / Kelola Produk
+          </button>
+          <button onclick="switchAdminTab('deploy')" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-600 transition-all">
+            Pelajari Cara Integrasi Google Sheets
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ADMIN TAB: KELOLA PRODUK (CRUD) -->
+    <main id="adminTab-products" class="hidden flex-1 p-6 space-y-6 overflow-y-auto">
+      <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Form Add/Edit -->
+        <div class="lg:w-1/3 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
+          <h3 id="formProductTitle" class="font-bold text-slate-900 text-sm mb-4">Tambah Produk Baru</h3>
+          
+          <form id="productForm" onsubmit="saveProduct(event)" class="space-y-4">
+            <input type="hidden" id="editProductId">
+            
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nama Undangan</label>
+              <input type="text" id="pName" required placeholder="Contoh: Softcover Classic Rustic" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-500 transition-all">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kategori</label>
+              <select id="pCategory" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-500 transition-all">
+                <option value="Rustic">Rustic</option>
+                <option value="Elegant">Elegant</option>
+                <option value="Modern">Modern</option>
+                <option value="Digital">Digital</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tautan Foto Undangan (URL)</label>
+              <input type="url" id="pImgUrl" required placeholder="https://..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-500 transition-all">
+              <span class="text-[10px] text-slate-400 mt-1 block">Rekomendasi: Unggah foto ke hosting gratis (Imgur / Postimages) lalu masukkan tautan fotonya di sini.</span>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+              <button type="button" onclick="resetForm()" class="w-1/2 py-2 border border-slate-200 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-500 transition-all">
+                Reset
+              </button>
+              <button type="submit" class="w-1/2 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+                Simpan Produk
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Table View -->
+        <div class="lg:w-2/3 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+            <h3 class="font-bold text-slate-900 text-sm">Daftar Produk Aktif</h3>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                  <th class="p-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gambar</th>
+                  <th class="p-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nama & Kategori</th>
+                  <th class="p-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="adminProductsTable">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ADMIN TAB: APPS SCRIPT DEPLOYMENT HUB -->
+    <main id="adminTab-deploy" class="hidden flex-1 p-6 space-y-6 overflow-y-auto">
+      <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 text-slate-700">
+        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-circle-question text-brand-500"></i>
+          Petunjuk Integrasi Penuh Dengan Google Apps Script & Sheets
+        </h3>
+        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+          Aplikasi ini dirancang untuk dapat terhubung langsung ke **Google Spreadsheet** sebagai databasenya. Ikuti 3 langkah mudah berikut untuk mengunggah berkas:
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Backend code reference -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 flex flex-col">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-brand-400"><i class="fa-solid fa-file-code"></i> Berkas Backend: Code.gs</span>
+          </div>
+          <p class="text-slate-400 text-xs">Silakan salin seluruh kode dari kotak file editor di sebelah kanan (file <code>Code.gs</code>) dan letakkan di editor proyek Google Apps Script Anda.</p>
+        </div>
+
+        <!-- HTML Code Reference -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 flex flex-col justify-between">
+          <div class="space-y-3">
+            <h4 class="font-extrabold text-slate-900 text-sm">Langkah Penyebaran (Deployment):</h4>
+            <ol class="list-decimal list-inside text-xs text-slate-500 space-y-2.5 font-medium">
+              <li>Buka <a href="https://script.google.com" target="_blank" class="text-brand-500 underline font-bold">script.google.com</a> dan buat Proyek Baru.</li>
+              <li>Salin kode dari <code>Code.gs</code> ke berkas bawaan Google Apps Script.</li>
+              <li>Buat file HTML baru di proyek tersebut, beri nama persis <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">Index</code>.</li>
+              <li>Salin semua isi file <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">index.html</code> (aplikasi utama ini) dan tempelkan ke file HTML baru tersebut.</li>
+              <li>Klik tombol <strong>Deploy</strong> &rarr; <strong>New deployment</strong> &rarr; Pilih jenis <strong>Web App</strong>.</li>
+              <li>Pilih opsi: <em>Execute as: "Me"</em> dan <em>Who has access: "Anyone"</em>.</li>
+              <li>Klik <strong>Deploy</strong>, lalu berikan otorisasi izin akun Google Anda.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Mobile Sidebar Overlay Overlay -->
+<div id="sidebarOverlay" onclick="closeSidebar()" class="hidden fixed inset-0 bg-slate-900/40 z-[40]"></div>
+
+<script>
+// Seed / Default Data (Dikosongkan sepenuhnya agar bersih)
+const DEFAULT_PRODUCTS = [];
+
+let products = [];
+let currentCategoryFilter = 'All';
+
+// Deteksi apakah dijalankan sebagai Google Web App
+const isGoogleAppsScript = (typeof google !== 'undefined' && google.script && google.script.run);
+
+window.onload = function () {
+  initializeBackend();
+};
+
+/**
+ * Inisialisasi Database berdasarkan Lingkungan Eksekusi
+ */
+function initializeBackend() {
+  const badge = document.getElementById('db-status-badge');
+  const dbType = document.getElementById('stat-db-type');
+
+  if (isGoogleAppsScript) {
+    badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Google Sheets Terkoneksi`;
+    badge.className = "text-[11px] bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5";
+    dbType.innerText = "Google Sheets";
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (response.success && response.data) {
+          products = response.data;
+          if (products.length === 0) {
+            products = [...DEFAULT_PRODUCTS];
+            products.forEach(p => google.script.run.tambahData(p));
+          }
+        } else {
+          products = [...DEFAULT_PRODUCTS];
+        }
+        syncAndRender();
+        hideLoading();
+      })
+      .withFailureHandler(function(err) {
+        showToast('Gagal memuat Google Sheets, menggunakan Lokal', 'warning');
+        loadLocalDatabase();
+        hideLoading();
+      })
+      .getData();
+  } else {
+    loadLocalDatabase();
+    hideLoading();
+  }
+}
+
+function loadLocalDatabase() {
+  // Menggunakan key baru 'dylan_products_db_v2' agar database lokal ter-reset menjadi kosong saat dimuat ulang
+  const stored = localStorage.getItem('dylan_products_db_v2');
+  if (stored) {
+    products = JSON.parse(stored);
+  } else {
+    products = [...DEFAULT_PRODUCTS];
+    localStorage.setItem('dylan_products_db_v2', JSON.stringify(products));
+  }
+  syncAndRender();
+}
+
+function syncAndRender() {
+  renderCatalog();
+  renderAdminProducts();
+  updateStats();
+}
+
+function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.add('opacity-0');
+  setTimeout(() => overlay.style.display = 'none', 300);
+}
+
+function showToast(message, type = 'info', duration = 3500) {
+  const container = document.getElementById('toastContainer');
+  const icons = { 
+    success: 'fa-check-circle', 
+    error: 'fa-times-circle', 
+    warning: 'fa-exclamation-triangle', 
+    info: 'fa-info-circle' 
+  };
+  const colors = {
+    success: 'bg-emerald-500',
+    error: 'bg-red-500',
+    warning: 'bg-amber-500',
+    info: 'bg-indigo-500'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `${colors[type]} text-white p-4 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300 transform translate-x-12 opacity-0 pointer-events-auto`;
+  toast.innerHTML = `<i class="fa-solid ${icons[type]} text-lg"></i><span class="text-xs font-bold">${message}</span>`;
+  
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.remove('translate-x-12', 'opacity-0'), 50);
+
+  setTimeout(() => {
+    toast.classList.add('translate-x-12', 'opacity-0');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+function scrollToSection(id) {
+  const section = document.getElementById(id);
+  if (section) {
+    const yOffset = -70; 
+    const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }
+}
+
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const icon = document.getElementById('menuIcon');
+  menu.classList.toggle('hidden');
+  icon.classList.toggle('fa-bars');
+  icon.classList.toggle('fa-xmark');
+}
+
+function renderCatalog() {
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '';
+
+  const filtered = currentCategoryFilter === 'All' 
+    ? products 
+    : products.filter(p => p.Category === currentCategoryFilter);
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-slate-200">
+        <i class="fa-regular fa-folder-open text-slate-300 text-5xl mb-3 block"></i>
+        <p class="text-slate-400 text-sm font-semibold">Belum ada produk untuk kategori "${currentCategoryFilter}"</p>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach(p => {
+    grid.innerHTML += `
+      <div class="bg-white rounded-2xl border border-slate-100 hover:border-indigo-100 overflow-hidden custom-shadow transition-all hover:-translate-y-1 flex flex-col justify-between group">
+        <div class="relative overflow-hidden">
+          <img src="${p.ImageUrl}" alt="${p.Name}" class="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400/ece9fe/4338ca?text=dylan_printing'">
+          <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-brand-500 uppercase tracking-widest shadow-sm">${p.Category}</span>
+        </div>
+        
+        <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+          <div class="space-y-1.5">
+            <h3 class="font-extrabold text-slate-900 group-hover:text-brand-500 transition-colors text-base leading-snug">${p.Name}</h3>
+          </div>
+
+          <div class="pt-4 border-t border-slate-50 space-y-3">
+            <span class="text-xs font-extrabold text-indigo-500 block">Hubungi kami untuk penawaran</span>
+            <button onclick="openOrderModal('${p.ID}')" class="w-full py-3 bg-indigo-50 group-hover:bg-brand-500 hover:!bg-brand-600 text-brand-500 group-hover:text-white rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2">
+              <i class="fa-solid fa-basket-shopping text-sm"></i> Tanya Penawaran
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function filterProducts(cat) {
+  currentCategoryFilter = cat;
+  const buttons = ['All', 'Rustic', 'Elegant', 'Modern', 'Digital'];
+  buttons.forEach(b => {
+    const btn = document.getElementById(`filter-btn-${b}`);
+    if (btn) {
+      if (b === cat) {
+        btn.className = "px-5 py-2.5 rounded-xl font-bold text-sm bg-brand-500 text-white shadow-md shadow-brand-500/25 transition-all";
+      } else {
+        btn.className = "px-5 py-2.5 rounded-xl font-bold text-sm bg-white hover:bg-indigo-50/50 text-slate-500 hover:text-brand-500 transition-all";
+      }
+    }
+  });
+
+  renderCatalog();
+}
+
+function openOrderModal(productId) {
+  const prod = products.find(p => p.ID === productId);
+  if (!prod) return;
+
+  document.getElementById('orderProductId').value = prod.ID;
+  document.getElementById('orderProductImg').src = prod.ImageUrl;
+  document.getElementById('orderProductName').innerText = prod.Name;
+  document.getElementById('orderProductCategory').innerText = prod.Category;
+
+  const qtyInput = document.getElementById('custQty');
+  if (prod.Category === 'Digital') {
+    qtyInput.value = 1;
+    qtyInput.min = 1;
+  } else {
+    qtyInput.value = 100;
+    qtyInput.min = 50;
+  }
+
+  document.getElementById('custName').value = '';
+  document.getElementById('custNotes').value = '';
+
+  calculateTotal();
+
+  const modal = document.getElementById('orderModal');
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeOrderModal() {
+  document.getElementById('orderModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function calculateTotal() {
+  let qty = Number(document.getElementById('custQty').value);
+  if (qty < 1) qty = 1;
+  const weight = ((qty * 15) / 1000).toFixed(1);
+  document.getElementById('calcWeight').innerText = weight;
+}
+
+function submitToWhatsApp(e) {
+  e.preventDefault();
+  const prodId = document.getElementById('orderProductId').value;
+  const prod = products.find(p => p.ID === prodId);
+  const name = document.getElementById('custName').value;
+  const qty = document.getElementById('custQty').value;
+  const notes = document.getElementById('custNotes').value;
+
+  if (!prod || !name || !qty) return;
+
+  const unit = prod.Category === 'Digital' ? 'paket' : 'pcs';
+  const waPhone = "6285856919425";
+  const messageText = `Halo dylan_printing 🌸
+
+Saya ingin meminta penawaran cetak undangan premium dengan rincian berikut:
+• *Nama Pemesan / Kedua Pengantin*: ${name}
+• *Model Undangan*: ${prod.Name} (${prod.Category})
+• *Jumlah*: ${qty} ${unit}
+• *Catatan Tambahan*: ${notes || '-'}
+
+Mohon informasi rincian penawaran harga, jenis kertas, serta langkah pemesanan berikutnya. Terima kasih!`;
+
+  const encoded = encodeURIComponent(messageText);
+  const url = `https://wa.me/${waPhone}?text=${encoded}`;
+
+  window.open(url, '_blank');
+  closeOrderModal();
+  showToast('Mengalihkan ke WhatsApp dylan_printing...', 'success');
+}
+
+function openAdminModal() {
+  document.getElementById('adminPassword').value = '';
+  document.getElementById('adminAuthModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAdminModal() {
+  document.getElementById('adminAuthModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function verifyAdminPasscode(e) {
+  e.preventDefault();
+  const pass = document.getElementById('adminPassword').value;
+
+  if (pass === 'dylan1299') {
+    closeAdminModal();
+    document.getElementById('adminPanel').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    showToast('Akses Admin Diberikan. Selamat bekerja!', 'success');
+  } else {
+    showToast('Kata sandi salah! Akses ditolak.', 'error');
+  }
+}
+
+function logoutAdmin() {
+  document.getElementById('adminPanel').classList.add('hidden');
+  document.body.style.overflow = '';
+  showToast('Berhasil keluar dari Panel Admin', 'info');
+}
+
+function switchAdminTab(tab) {
+  const tabs = ['dashboard', 'products', 'deploy'];
+  tabs.forEach(t => {
+    const mainEl = document.getElementById(`adminTab-${t}`);
+    const btnEl = document.getElementById(`tabBtn-${t}`);
+    if (t === tab) {
+      mainEl.classList.remove('hidden');
+      btnEl.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all text-white bg-slate-900";
+    } else {
+      mainEl.classList.add('hidden');
+      btnEl.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-slate-900/50";
+    }
+  });
+
+  const titles = {
+    dashboard: 'Dashboard Admin',
+    products: 'Kelola Varian Undangan',
+    deploy: 'Panduan Apps Script Hub'
+  };
+  document.getElementById('adminTitle').innerText = titles[tab];
+}
+
+function triggerDatabaseSetup() {
+  if (isGoogleAppsScript) {
+    showToast('Mencoba menyambungkan ulang Google Sheets...', 'info');
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if(response.success) {
+          showToast(response.message, 'success');
+        } else {
+          showToast(response.message, 'error');
+        }
+      })
+      .initApp();
+  } else {
+    showToast('Integrasi Spreadsheet hanya aktif saat ter-deploy di Google Apps Script.', 'info');
+  }
+}
+
+function renderAdminProducts() {
+  const tbody = document.getElementById('adminProductsTable');
+  tbody.innerHTML = '';
+
+  products.forEach(p => {
+    tbody.innerHTML += `
+      <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+        <td class="p-4">
+          <img src="${p.ImageUrl}" alt="${p.Name}" class="w-12 h-12 object-cover rounded-lg border border-slate-200" onerror="this.src='https://placehold.co/100x100/ece9fe/4338ca?text=Invit'">
+        </td>
+        <td class="p-4">
+          <p class="font-extrabold text-slate-900 text-xs">${p.Name}</p>
+          <span class="inline-block px-2 py-0.5 mt-1 rounded bg-indigo-50 text-brand-500 font-bold text-[9px]">${p.Category}</span>
+        </td>
+        <td class="p-4 text-right">
+          <div class="flex items-center justify-end gap-1.5">
+            <button onclick="editProduct('${p.ID}')" class="p-2 text-brand-500 hover:bg-indigo-50 rounded-lg transition-all" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button onclick="deleteProduct('${p.ID}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function updateStats() {
+  document.getElementById('stat-total-products').innerText = products.length;
+}
+
+function saveProduct(e) {
+  e.preventDefault();
+  const id = document.getElementById('editProductId').value;
+  const name = document.getElementById('pName').value;
+  const category = document.getElementById('pCategory').value;
+  const imgUrl = document.getElementById('pImgUrl').value;
+
+  // Nilai price dan description dikosongkan demi kompatibilitas format database Google Sheets
+  const productData = { Name: name, Category: category, Price: 0, ImageUrl: imgUrl, Description: "" };
+
+  if (isGoogleAppsScript) {
+    showToast('Menyimpan perubahan ke Google Sheets...', 'info');
+    if (id) {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            showToast('Produk diperbarui di Google Sheets!', 'success');
+            initializeBackend();
+          } else {
+            showToast(res.message, 'error');
+          }
+        })
+        .updateData(id, productData);
+    } else {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            showToast('Produk ditambahkan ke Google Sheets!', 'success');
+            initializeBackend();
+          } else {
+            showToast(res.message, 'error');
+          }
+        })
+        .tambahData(productData);
+    }
+  } else {
+    // Mode Simulasi Lokal dengan kunci penyimpanan yang konsisten
+    if (id) {
+      const idx = products.findIndex(p => p.ID === id);
+      if (idx !== -1) {
+        products[idx] = { ...products[idx], ...productData };
+        showToast('Undangan berhasil diperbarui secara lokal!', 'success');
+      }
+    } else {
+      const newId = 'ID-' + Date.now();
+      products.push({ ID: newId, ...productData });
+      showToast('Varian baru disimpan secara lokal!', 'success');
+    }
+    localStorage.setItem('dylan_products_db_v2', JSON.stringify(products));
+    syncAndRender();
+  }
+
+  resetForm();
+}
+
+function editProduct(id) {
+  const prod = products.find(p => p.ID === id);
+  if (!prod) return;
+
+  document.getElementById('editProductId').value = prod.ID;
+  document.getElementById('pName').value = prod.Name;
+  document.getElementById('pCategory').value = prod.Category;
+  document.getElementById('pImgUrl').value = prod.ImageUrl;
+
+  document.getElementById('formProductTitle').innerText = "Edit Varian Undangan";
+}
+
+let productIdToDelete = null;
+
+function deleteProduct(id) {
+  const prod = products.find(p => p.ID === id);
+  if (!prod) return;
+
+  productIdToDelete = id;
+  document.getElementById('deleteProductName').innerText = prod.Name;
+  
+  // Tampilkan modal konfirmasi custom
+  const modal = document.getElementById('deleteConfirmModal');
+  modal.classList.remove('hidden');
+  
+  // Pasangkan aksi konfirmasi ke tombol eksekusi
+  const confirmBtn = document.getElementById('btnConfirmDelete');
+  confirmBtn.onclick = executeDelete;
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteConfirmModal').classList.add('hidden');
+  productIdToDelete = null;
+}
+
+function executeDelete() {
+  if (!productIdToDelete) return;
+  const id = productIdToDelete;
+
+  if (isGoogleAppsScript) {
+    showToast('Menghapus dari Google Sheets...', 'info');
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res.success) {
+          showToast('Produk terhapus dari Google Sheets!', 'success');
+          initializeBackend();
+        } else {
+          showToast(res.message, 'error');
+        }
+      })
+      .deleteData(id);
+  } else {
+    products = products.filter(p => p.ID !== id);
+    localStorage.setItem('dylan_products_db_v2', JSON.stringify(products));
+    syncAndRender();
+    showToast('Produk dihapus secara lokal!', 'warning');
+  }
+  
+  closeDeleteModal();
+  resetForm();
+}
+
+function resetForm() {
+  document.getElementById('productForm').reset();
+  document.getElementById('editProductId').value = '';
+  document.getElementById('formProductTitle').innerText = "Tambah Produk Baru";
+}
+</script>
+</body>
+</html>
+```
+eof
+
+### Ringkasan Pembaruan:
+* **Modal Hapus Baru**: Dialog konfirmasi jelek bawaan browser (`confirm()`) telah digantikan oleh `deleteConfirmModal` yang terintegrasi secara visual dengan tema premium dylan_printing.
+* **Perbaikan Sinkronisasi**: Mengubah semua instansi `localStorage.setItem` dari `'dylan_products_db_no_price'` ke `'dylan_products_db_v2'` agar tersambung langsung dengan fungsi pembaca database utama secara sinkron dan instan.
